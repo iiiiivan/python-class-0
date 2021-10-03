@@ -19,7 +19,7 @@ class Fireball(Sprite):
         self.image="fireball.gif"
         self.goto_random_position()
 
-for i in range(5000):
+for i in range(5):
     window.create_sprite(Owl)
     window.create_sprite(Fireball)
 
