@@ -3,7 +3,7 @@ from pycat.core import Window, Sprite
 from pycat.label import Label
 from pyglet import image
 
-w=Window()
+w=Window(background_image="media/forest_04.png")
 
 img_list = [
     "media/1.jpg",
