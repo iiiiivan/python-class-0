@@ -1,20 +1,38 @@
 from pycat.core import Color, KeyCode, Sprite, Window, Scheduler
 from random import randint, random
 
+from pycat.label import Label
+
+
+
 
 window = Window()
-health = window.create_label()
+window.set_clear_color(0, 0, 153)
+
+class Timer(Label):
+    def on_create(self):
+        self.time=0
+        self.text='time='+str(self.time)
+    def on_update(self, dt: float):
+        self.time+=dt
+        self.text='time='+str(round(self.time,1))
+
+
+window.create_label(Timer)
 
 class Player(Sprite):
 
     def on_create(self):
-        self.color = Color.AMBER
+        self.color = Color(51, 204, 51)
         self.x=50
         self.y=100
         self.scale = 30
         self.speed = 15
+        self.health_label = window.create_label()
         self.health = 100
-        health.text = "health = "+ str(self.health)
+        self.health_label.text = "health = "+ str(self.health)
+        self.health_label.font_size=11
+        
 
     def on_update(self, dt):
         if window.is_key_down(KeyCode.SPACE):
@@ -45,6 +63,8 @@ class Player(Sprite):
         if self.health<=0:
             self.delete()
             window.close()
+        self.health_label.x=self.x-self.width/2
+        self.health_label.y=self.y-self.height/2
 
     def on_left_click_anywhere(self):
         window.create_sprite(Bullet)
@@ -59,9 +79,10 @@ class Bullet(Sprite):
         self.add_tag('bullet')
 
     def on_update(self, dt):
-        self.move_forward(5)
+        self.move_forward(7)
         if self.is_touching_window_edge():
             self.delete()
+
         
 
         
@@ -72,40 +93,55 @@ class Enemy(Sprite):
         self.goto_random_position()
         self.time=0
         self.rotation=randint(0, 360)
-        self.color=Color.RED
+        self.color=Color(255, 234, 0)
         self.add_tag('enemy')
+        self.health = 5
+        self.enemyhealth = window.create_label()
+        self.enemyhealth.text = "enemy health = "+ str(self.health)
+        self.enemyhealth.font_size=11
+        self.enemyhealth.x=self.x-self.width/2
+        self.enemyhealth.y=self.y-self.height/2
 
     def on_update(self, dt):
-        self.move_forward(1)
+        self.move_forward(3)
         if self.is_touching_any_sprite_with_tag('barrier'):
             self.delete()
         if self.is_touching_any_sprite_with_tag('bullet'):
-            self.delete()
+            self.health-=1
         if self.is_touching_window_edge():
             self.delete()
         self.time+=dt
-        if self.time>5:
+        if self.time>0.5:
             b=window.create_sprite(EnemyBullet)
             b.position=self.position
             b.point_toward_sprite(player)
             self.time=0
+        self.enemyhealth.x=self.x-self.width/2
+        self.enemyhealth.y=self.y-self.height/2
+        self.enemyhealth.text = "enemy health = "+ str(self.health)
+        if self.health<=0:
+            self.delete()
+
+    def delete(self):
+        self.enemyhealth.delete()
+        return super().delete()
 
 
 class EnemyBullet(Sprite):
 
     def on_create(self):
         self.scale=15
-        self.color=Color.RED
+        self.color=Color(255, 89, 0)
         self.add_tag('enemybullet')
 
     def on_update(self, dt):
-        self.move_forward(2)
+        self.move_forward(10)
         if self.is_touching_window_edge():
             self.delete()
         if self.is_touching_sprite(player):
             self.delete()
             player.health-=1
-            health.text="health = "+str(player.health)
+            player.health_label.text="health = "+str(player.health)
 
 class Barrier(Sprite):
 
@@ -141,6 +177,5 @@ def spawn_enemy():
 
 
 Scheduler.update(spawn_enemy, delay=0.5)
-
 player = window.create_sprite(Player)
 window.run()
