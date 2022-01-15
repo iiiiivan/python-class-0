@@ -22,7 +22,7 @@ class Timer(Label):
             window.close()
             
 
-window.create_label(Timer)
+timer = window.create_label(Timer)
 
 class Player(Sprite):
 
@@ -214,11 +214,11 @@ class Boss(Sprite):
         self.enemyhealth.x=self.x-self.width/2
         self.enemyhealth.y=self.y-self.height/2
         self.enemyhealth.text = "enemy health = "+ str(self.health)
-        if self.health<=0:
+        if self.health<=0 and timer.time:
             window.close()
             print('you lose')
-        if self.health<=1:
-            print('you win')
+        # if self.health<=1:
+        #     print('you win')
 
 
     def delete(self):
