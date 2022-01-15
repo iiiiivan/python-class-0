@@ -11,12 +11,16 @@ window.set_clear_color(0, 0, 153)
 
 class Timer(Label):
     def on_create(self):
-        self.time=0
+        self.time=30
         self.text='time='+str(self.time)
     def on_update(self, dt: float):
-        self.time+=dt
+        self.time-=dt
         self.text='time='+str(round(self.time,1))
-
+        if self.time<=20:
+            Scheduler.cancel_update(spawn_enemy)
+        if self.time<=0:
+            window.close()
+            
 
 window.create_label(Timer)
 
@@ -126,7 +130,6 @@ class Enemy(Sprite):
         self.enemyhealth.delete()
         return super().delete()
 
-
 class EnemyBullet(Sprite):
 
     def on_create(self):
@@ -142,6 +145,7 @@ class EnemyBullet(Sprite):
             self.delete()
             player.health-=1
             player.health_label.text="health = "+str(player.health)
+            print(player.health)
 
 class Barrier(Sprite):
 
@@ -158,23 +162,72 @@ class Barrier(Sprite):
             bullet[i].delete() 
         self.time-=dt
         if self.time<1:
-            self.delete()
-
-
+            self.delete()      
+            
+            
 b=window.create_sprite(Barrier)
 b.x = 50
 b.y = 150
 b=window.create_sprite(Barrier)
 b.x = 100
 b.y = 100
-b.rotation=90
+b.rotation=90      
 
 
 
 
-def spawn_enemy():
+class Boss(Sprite):
+
+
+    def on_create(self):
+        self.scale=20
+        self.goto_random_position()
+        self.color=Color(255, 234, 0)
+        self.rotation=randint(0, 360)
+        self.x_speed=3
+        self.y_speed=3
+        self.time=0
+        self.health = 20
+        self.enemyhealth = window.create_label()
+        self.enemyhealth.text = "enemy health = "+ str(self.health)
+        self.enemyhealth.font_size=11
+        self.enemyhealth.x=self.x-self.width/2
+        self.enemyhealth.y=self.y-self.height/2
+
+
+    def on_update(self, dt):
+        self.x+=self.x_speed
+        self.y+=self.y_speed
+        if (self.x>window.width) or (self.x<0):
+            self.x_speed = -self.x_speed
+        if (self.y<0) or (self.y>window.height):
+            self.y_speed = -self.y_speed
+        if self.is_touching_any_sprite_with_tag('bullet'):
+            self.health-=1
+        self.time+=dt
+        if self.time>0.1:
+            b=window.create_sprite(EnemyBullet)
+            b.position=self.position
+            b.point_toward_sprite(player)
+            self.time=0
+
+        self.enemyhealth.x=self.x-self.width/2
+        self.enemyhealth.y=self.y-self.height/2
+        self.enemyhealth.text = "enemy health = "+ str(self.health)
+        if self.health<=0:
+            window.close()
+            print('you lose')
+        if self.health<=1:
+            print('you win')
+
+
+    def delete(self):
+        self.enemyhealth.delete()
+        return super().delete()
+window.create_sprite(Boss)
+
+def spawn_enemy(dt):
     window.create_sprite(Enemy)
-
 
 Scheduler.update(spawn_enemy, delay=0.5)
 player = window.create_sprite(Player)
